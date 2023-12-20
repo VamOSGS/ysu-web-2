@@ -7,11 +7,12 @@ import {
   VStack,
   useToast,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Layout from '../components/Layout';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useRegister } from '../core/UserHooks';
+import { useUser } from '../core/UserProvider';
 
 export default function Register() {
   const {
@@ -20,7 +21,9 @@ export default function Register() {
     formState: { errors },
   } = useForm();
   const { mutate: createUser } = useRegister();
+  const navigate = useNavigate();
   const toast = useToast();
+  const { isGuest } = useUser();
 
   const onCreateUser = (data) => {
     createUser(data, {
@@ -43,6 +46,7 @@ export default function Register() {
             duration: 9000,
             isClosable: true,
           });
+          navigate('/login');
         }
       },
       onError: (err) => {
@@ -57,12 +61,22 @@ export default function Register() {
       },
     });
   };
+  useEffect(() => {
+    if (!isGuest) {
+      navigate('/');
+    }
+  }, [isGuest]);
 
   return (
     <Layout>
       <Container>
-        <VStack spacing={4} as='form' onSubmit={handleSubmit(onCreateUser)}>
-          <Heading>Register</Heading>
+        <Heading>Register</Heading>
+        <VStack
+          mt={6}
+          spacing={4}
+          as='form'
+          onSubmit={handleSubmit(onCreateUser)}
+        >
           <Input
             placeholder='Username'
             {...register('username', {

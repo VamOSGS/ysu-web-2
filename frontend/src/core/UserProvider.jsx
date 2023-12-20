@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
+import io from 'socket.io-client';
 const UserContext = createContext({
   user: {},
   isLoading: false,
@@ -11,25 +11,37 @@ export default function UserProvider({ children }) {
   const [user, setUser] = useState({
     id: 'guest',
   });
+  const [onlineUsersCount, setOnlineUsersCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    const socket = io('http://localhost:5555/');
+
+    socket.on('onlineUsersCount', (count) => {
+      setOnlineUsersCount(count);
+    });
+    const localUser = localStorage.getItem('user');
+    if (localUser) {
+      setUser(JSON.parse(localUser));
+      return;
+    }
+
     setIsLoading(true);
-    // fetch('/api/user')
-    //   .then((res) => res.json())
-    //   .then((data) => {
-    //     setUser(data);
-    //     setIsLoading(false);
-    //   });
   }, []);
 
+  const logOut = () => {
+    setUser({ id: 'guest' });
+    localStorage.removeItem('user');
+  };
   return (
     <UserContext.Provider
       value={{
         user,
         setUser,
         isLoading,
-        isGuest: user.id === 'guest' || !user.id,
+        logOut,
+        isGuest: user.id === 'guest',
+        onlineUsersCount,
       }}
     >
       {children}

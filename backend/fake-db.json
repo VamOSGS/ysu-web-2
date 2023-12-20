@@ -3,5 +3,10 @@
     "username": "sad",
     "password": "$2b$10$NudldgkhCn3mVP3pJ3K5ROl3eqZc9H/VGp5Ox5Rzf4WeXZRLbee9m",
     "email": "asd"
+  },
+  {
+    "username": "gegham",
+    "password": "$2b$10$BktefHEcy4397.eqGeoXAunGNohpn2LJoH/Pc.GZI9n3knRQzAZpC",
+    "email": "test"
   }
 ]

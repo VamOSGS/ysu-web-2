@@ -5,6 +5,9 @@ dotenv.config();
 import { User } from './models.js';
 import { hashPassword, isPasswordValid } from './services/hash.js';
 import fs from 'fs';
+import path from 'path';
+import http from 'http';
+import { Server } from 'socket.io';
 const port = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
@@ -13,9 +16,6 @@ app.use(
     origin: '*',
   })
 );
-app.get('/', (req, res) => {
-  res.send('API is OK!!!');
-});
 
 app.get('/users', async (req, res) => {
   try {
@@ -73,20 +73,6 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: 'Could not create user', error });
   }
-});
-
-app.post('/test', async (req, res) => {
-  const { pwd } = req.body;
-  const hash = await hashPassword(pwd);
-  console.log(pwd);
-  res.json({ pwd, hash });
-});
-
-app.post('/test2', async (req, res) => {
-  const { pwd, hash } = req.body;
-  const validPassword = await isPasswordValid(pwd, hash);
-  console.log(pwd, hash, validPassword);
-  res.json({ pwd, hash, validPassword });
 });
 
 app.post('/api/login', async (req, res) => {
@@ -160,7 +146,28 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+  },
+});
+
+let onlineUsers = 0;
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+  onlineUsers++;
+  io.emit('onlineUsersCount', onlineUsers);
+
+  socket.on('disconnect', () => {
+    onlineUsers--;
+    io.emit('onlineUsersCount', onlineUsers);
+  });
+});
+
+server.listen(port, () => {
   console.log(
     `Server running on \n http://127.0.0.1:${port}/ \n http://localhost:${port}/ `
   );

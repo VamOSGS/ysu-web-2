@@ -7,25 +7,31 @@ import {
   VStack,
   useToast,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Layout from '../components/Layout';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useLogin } from '../core/UserHooks';
+import { useUser } from '../core/UserProvider';
 export default function Login() {
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const { setUser, isGuest } = useUser();
   const { mutate: login } = useLogin();
   const toast = useToast();
+  const navigate = useNavigate();
 
   const onLogin = (data) => {
     login(data, {
       onSuccess: (res) => {
-        console.log(res);
-
+        if (res.user) {
+          setUser(res.user);
+          localStorage.setItem('user', JSON.stringify(res.user));
+          navigate('/');
+        }
         if (res.error) {
           toast({
             title: 'Error',
@@ -46,6 +52,13 @@ export default function Login() {
       },
     });
   };
+
+  useEffect(() => {
+    if (!isGuest) {
+      navigate('/');
+    }
+  }, [isGuest]);
+
   return (
     <Layout>
       <Container>
